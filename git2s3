@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+# Sync git repository to s3 bucket.
+
+use strict;
+use warnings;
+
+# Core modules
+require Cwd;
+require File::Basename;
+require File::Spec;
+require Getopt::Long;
+require Pod::Usage;
+require Term::ANSIColor;
+
+use constant DEBUG => 0;
+
+# Extra modules
+require JSON;
+
+sub _debug {
+    if (DEBUG) {
+        print(@_);
+    }
+}
+sub _error {
+    print Term::ANSIColor::colored(["Bold Red"], shift() . "\n");
+}
+sub _info {
+    print Term::ANSIColor::colored(["Bold"], shift() . "\n");
+}
+
+my $cfg = {};
+my $cwd = Cwd::getcwd();
+
+if (!Getopt::Long::GetOptions(
+    "c|config=s"     => \$cfg->{configfn},
+    "r|repository=s" => \$cfg->{repo},
+    "h|help"         => \$cfg->{help},
+)) {
+    print("Error in command line arguments\n");
+    Pod::Usage::pod2usage(1);
+    exit 1;
+}
+
+if ($cfg->{help}) {
+    Pod::Usage::pod2usage(1);
+    exit 0;
+}
+
+if (! $cfg->{repo}) {
+    _info("No repository defined, using current working directory instead");
+    $cfg->{repo} = $cwd;
+}
+
+if (! $cfg->{configfn}) {
+    _info("No configuration file defined, using ~/.git2s3.json instead");
+    $cfg->{configfn} = File::Spec->catfile($ENV{'HOME'}, '.git2s3.json');
+}
+
+# Read target buckets and configuration for access
+my $buckets;
+{
+    undef $/;
+    open(my $fh, '<', $cfg->{configfn}) or die "Could not open config file $cfg->{configfn}: $!";
+    my $json_text = <$fh>;
+    my $config = JSON::decode_json($json_text);
+    $buckets = $config->{buckets};
+    close($fh);
+}
+
+# TODO: Check if s3cmd and git in path before using
+# s3cmd config
+for my $bucket (@{$buckets}) {
+    my $cfgcheck = sprintf('%s/.s3cfg.%s', $ENV{'HOME'}, $bucket);
+    if (! -f $cfgcheck) {
+        _error("$cfgcheck does not exist or is not a file");
+        exit 3;
+    }
+}
+
+# Get current git branch
+my $branch;
+{
+    chdir $cfg->{repo} or die "Could not change to directory $cfg->{repo}: $!";
+    $branch =substr(qx(git branch | grep ^\*), 2);
+    $branch =~ s/\s+$//;
+    chomp $branch;
+    if (!$branch) {
+        print "Could not determine git branch!\n";
+        exit 2;
+    }
+    _debug("Branch determined: '$branch'\n");
+    # Get back to original directory
+    chdir $cwd;
+}
+
+
+my ($dirname, undef, undef) = File::Basename::fileparse($cfg->{repo});
+
+# Try sync for each bucket
+for my $bucket (@{$buckets}) {
+    my $cmd = sprintf("s3cmd sync %s/ s3://%s/%s/%s/ --delete-removed --rexclude='(README.md)|(^\.git)|(^sync\$)'", $cfg->{repo}, $bucket, $branch, $dirname);
+    _debug("Sync using command: $cmd\n");
+    system($cmd);
+}
+
+=head1 NAME
+
+Sync a git repository to an s3 bucket.
+
+=head1 SYNOPSIS
+
+  Usage: git2s3 [OPTIONS]
+
+  OPTIONS must contain either  exactly both of the following options:
+    -r --repository     The repository to sync. Will use current working
+                        directory, if not set.
+    -h --help           Print this help message
+
+    {
+      "buckets": [
+        "rtl-cfn-templates",
+        "rtli-cloudformatios"
+      ]
+    }
+
+=cut
