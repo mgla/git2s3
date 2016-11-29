@@ -9,3 +9,10 @@
    s3cmd configuration file
 * Add a ~/.git2s3.json file
 * Install git2s3 into your path
+
+
+##ToDo
+
+* Use API instead of S3cmd.
+ * Also remove fixed filters
+
