@@ -48,8 +48,15 @@ if ($cfg->{help}) {
 }
 
 if (! $cfg->{repo}) {
-    _info("No repository defined, using current working directory instead");
-    $cfg->{repo} = $cwd;
+    _info("No repository defined, use git directory base instead");
+    my $gitpath = qx(git rev-parse --show-toplevel);
+    if (! $?) {
+        chomp $gitpath;
+        $cfg->{repo} = $gitpath;
+    } else {
+        _info("No repository defined, using current working directory instead");
+        $cfg->{repo} = $cwd;
+    }
 }
 
 if (! $cfg->{configfn}) {
