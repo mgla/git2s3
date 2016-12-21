@@ -60,8 +60,18 @@ if (! $cfg->{repo}) {
 }
 
 if (! $cfg->{configfn}) {
-    _info("No configuration file defined, using ~/.git2s3.json instead");
-    $cfg->{configfn} = File::Spec->catfile($ENV{'HOME'}, '.git2s3.json');
+    _info("No configuration file defined, using falling back to .git2s3.json instead");
+    for my $check ( map { File::Spec->catfile($_, '.git2s3.json') } ( $cfg->{repo}, $cwd, $ENV{HOME})) {
+        if ( -f $check ) {
+            _info("Used configuration file $check.");
+            $cfg->{configfn} = $check;
+            last;
+        }
+    }
+    if (! $cfg->{configfn}) {
+        _error("Could not find config file");
+        exit 3;
+    }
 }
 
 # Read target buckets and configuration for access
