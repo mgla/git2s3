@@ -1,6 +1,7 @@
 {
 	"buckets": [
-		"mys3bucket",
-		"mys3bucket/my/path"
+		"mys3bucket/",
+		"mys3bucket/my/path/%branch%/",
+		"mys3bucket/my/path2/%branch%/"
 	]
 }
