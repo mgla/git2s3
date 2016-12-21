@@ -88,8 +88,9 @@ my $buckets;
 # TODO: Check if s3cmd and git in path before using
 # s3cmd config
 for my $bucket (@{$buckets}) {
-    $bucket =~ s/\/.+//;
-    my $cfgcheck = sprintf('%s/.s3cfg.%s', $ENV{'HOME'}, $bucket);
+    my $stripedbucket = $bucket;
+    $stripedbucket =~ s/\/.+//;
+    my $cfgcheck = sprintf('%s/.s3cfg.%s', $ENV{'HOME'}, $stripedbucket);
     if (! -f $cfgcheck) {
         _error("$cfgcheck does not exist or is not a file");
         exit 3;
