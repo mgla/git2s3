@@ -118,7 +118,7 @@ my ($dirname, undef, undef) = File::Basename::fileparse($cfg->{repo});
 
 # Try sync for each bucket
 for my $bucket (@{$buckets}) {
-    my $cmd = sprintf("s3cmd sync %s/ s3://%s/%s/%s/ --delete-removed --rexclude='(README.md)|(^\.git)|(^sync\$)'", $cfg->{repo}, $bucket, $branch, $dirname);
+    my $cmd = sprintf("s3cmd sync %s/ s3://%s/%s/%s/ --delete-removed --rexclude='(^\.git)'", $cfg->{repo}, $bucket, $branch, $dirname);
     _debug("Sync using command: $cmd\n");
     system($cmd);
 }
