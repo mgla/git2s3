@@ -138,8 +138,8 @@ Sync a git repository to an s3 bucket.
 
     {
       "buckets": [
-        "rtl-cfn-templates",
-        "rtli-cloudformatios"
+        "mys3bucket",
+        "myseconds3bucket/my/path"
       ]
     }
 
