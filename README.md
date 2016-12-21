@@ -1,5 +1,7 @@
 # git2s3
 
+Simple tool to push contents of a git repository to S3 bucket(s) via CLI.
+
 ## Installation
 
 * Install necessary perl module 'JSON'. Debian: libjson-perl
