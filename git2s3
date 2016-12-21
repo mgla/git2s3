@@ -118,7 +118,7 @@ my ($dirname, undef, undef) = File::Basename::fileparse($cfg->{repo});
 
 # Try sync for each bucket
 for my $bucket (@{$buckets}) {
-    my $cmd = sprintf("s3cmd sync %s/ s3://%s/%s/%s/ --delete-removed --rexclude='(^\.git)'", $cfg->{repo}, $bucket, $branch, $dirname);
+    my $cmd = sprintf("s3cmd sync %s/ s3://%s/%s/%s/ --delete-removed --rexclude='(^\.git)'", $cfg->{repo}, $bucket, $branch);
     _debug("Sync using command: $cmd\n");
     system($cmd);
 }
@@ -142,5 +142,8 @@ Sync a git repository to an s3 bucket.
         "myseconds3bucket/my/path"
       ]
     }
+
+  This will sync the directory content directly to mysq3bucket/ and 
+  to myseconds3bucket/my/path
 
 =cut
