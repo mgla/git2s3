@@ -86,17 +86,6 @@ my $buckets;
 }
 
 # TODO: Check if s3cmd and git in path before using
-# s3cmd config
-for my $bucket (@{$buckets}) {
-    my $stripedbucket = $bucket;
-    $stripedbucket =~ s/\/.+//;
-    my $cfgcheck = sprintf('%s/.s3cfg.%s', $ENV{'HOME'}, $stripedbucket);
-    if (! -f $cfgcheck) {
-        _error("$cfgcheck does not exist or is not a file");
-        exit 3;
-    }
-}
-
 # Get current git branch
 my $branch;
 {
@@ -119,8 +108,15 @@ my ($dirname, undef, undef) = File::Basename::fileparse($cfg->{repo});
 # Try sync for each bucket
 for my $bucket (@{$buckets}) {
     my $s3path = $bucket;
+    my $strippedbucket = $bucket;
+    $strippedbucket =~ s/\/.+//;
+    my $s3cfg = sprintf('%s/.s3cfg.%s', $ENV{'HOME'}, $strippedbucket);
+    if (! -f $s3cfg) {
+        _error("$s3cfg does not exist or is not a file");
+        exit 3;
+    }
     $s3path =~ s/%branch%/$branch/;
-    my $cmd = sprintf("s3cmd sync %s/ s3://%s --delete-removed --rexclude='(^\.git)'", $cfg->{repo}, $s3path);
+    my $cmd = sprintf("s3cmd sync %s/ s3://%s -c %s --delete-removed --rexclude='(^\.git)'", $cfg->{repo}, $s3path, $s3cfg);
     _debug("Sync using command: $cmd\n");
     system($cmd);
 }
