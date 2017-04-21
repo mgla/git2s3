@@ -14,8 +14,3 @@ Simple tool to push contents of a git repository to S3 bucket(s) via CLI.
  * your current working directory
  * to ~/
 * Install git2s3 into your path
-
-##ToDo
-
-* Use API instead of S3cmd.
-
