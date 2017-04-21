@@ -61,12 +61,18 @@ if (! $cfg->{repo}) {
 
 if (! $cfg->{configfn}) {
     _info("No configuration file defined, using falling back to .git2s3.json instead");
+    my $count = 0;
     for my $check ( map { File::Spec->catfile($_, '.git2s3.json') } ( $cfg->{repo}, $cwd, $ENV{HOME})) {
         if ( -f $check ) {
             _info("Used configuration file $check.");
+            if ($count == 1) {
+                _info("Since using .git2s3 from CWD, but not repository .git2s3, we use CWD as basedir for syncronization.");
+                $cfg->{repo} = $cwd;
+            }
             $cfg->{configfn} = $check;
             last;
         }
+        $count++;
     }
     if (! $cfg->{configfn}) {
         _error("Could not find config file");
